@@ -94,7 +94,7 @@ describe('lookup availability', () => {
     await expect(lookupWord('unprepared')).rejects.toThrow('could not be reached');
   });
   it('gives a missing search its own diagram without inventing ancestry', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => ({ error: { code: 'missingtitle' } }) }));
+    vi.stubGlobal('fetch', vi.fn().mockImplementation(async () => new Response(JSON.stringify({ error: { code: 'missingtitle' } }))));
     const entry = await lookupWord('zxqmissingword');
     expect(entry.missing).toBe(true);
     expect(entry.word).toBe('zxqmissingword');
@@ -104,7 +104,7 @@ describe('lookup availability', () => {
   it('follows the lemma of an inflected form and retains both source records', async () => {
     const formHtml = `${heading(2, 'English')}${heading(3, 'Noun')}<ol><li><span class="form-of-definition">plural of <span class="form-of-definition-link"><i class="mention" lang="en"><a>testbase</a></i></span></span></li></ol>`;
     const baseHtml = fixture({ tree: { term: 'testbase', lang_name: 'English', children: [{ term: 'antecedent', lang_name: 'Latin' }] } });
-    vi.stubGlobal('fetch', vi.fn().mockImplementation((url: string) => Promise.resolve({ ok: true, json: async () => ({ parse: { text: { '*': url.includes('page=testbases&') ? formHtml : baseHtml } } }) })));
+    vi.stubGlobal('fetch', vi.fn().mockImplementation(async (url: string) => new Response(JSON.stringify({ parse: { text: { '*': url.includes('page=testbases&') ? formHtml : baseHtml } } }))));
     const entry = await lookupWord('testbases');
     expect(entry.nodes.map(node => node.term)).toEqual(['testbases', 'testbase', 'antecedent']);
     expect(entry.sources).toHaveLength(2);

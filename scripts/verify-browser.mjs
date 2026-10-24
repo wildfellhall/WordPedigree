@@ -45,13 +45,33 @@ try {
   await page.goBack(); await waitForWord('petrichor');
   await page.goForward(); await waitForWord('companion');
 
+  // A temporary service failure must recover within the original search.
+  let dictionaryRequests = 0;
+  await page.route('**/en.wiktionary.org/w/api.php**', route => {
+    if (route.request().method() !== 'GET') return route.continue();
+    dictionaryRequests++;
+    return dictionaryRequests === 1
+      ? route.fulfill({ status: 503, headers: { 'Retry-After': '1' }, body: 'Temporarily unavailable' })
+      : route.continue();
+  });
   await page.getByLabel('A word to trace', { exact: true }).fill('butterfly');
   await page.locator('.search-form button[type="submit"]').click();
   await waitForWord('butterfly');
   assert.match(await page.locator('.definition').innerText(), /flying insect/i);
   assert.ok(await page.locator('.word-node').count() > 3);
   assert.match(await page.locator('.entry-source-note').innerText(), /CC BY-SA/);
+  assert.equal(dictionaryRequests, 2);
+  assert.equal(await page.getByRole('alert').count(), 0);
   await page.screenshot({ path: 'test-results/live-entry.png', fullPage: true });
+  await page.unroute('**/en.wiktionary.org/w/api.php**');
+
+  for (const word of ['etymology', 'ephemeral']) {
+    await page.getByLabel('A word to trace', { exact: true }).fill(word);
+    await page.locator('.search-form button[type="submit"]').click();
+    await waitForWord(word);
+    assert.ok(await page.locator('.word-node').count() > 1);
+    assert.equal(await page.getByRole('alert').count(), 0);
+  }
 
   await page.route('**/en.wiktionary.org/w/api.php**', route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ error: { code: 'missingtitle' } }) }));
   await page.getByLabel('A word to trace', { exact: true }).fill('zxqmissingword');
@@ -84,5 +104,5 @@ try {
   await page.reload({ waitUntil: 'networkidle' });
   assert.equal(await heading().textContent(), 'nostalgia');
   assert.deepEqual(errors, []);
-  console.log('Passed: root/source dialogs, persisted cabinet, curated search, live search, zoom, history, missing entries, network recovery, reduced motion, and responsive layouts.');
+  console.log('Passed: root/source dialogs, persisted cabinet, curated search, three live searches, automatic service recovery, zoom, history, missing entries, network recovery, reduced motion, and responsive layouts.');
 } finally { await browser.close(); }

@@ -1,6 +1,7 @@
 import type { WordEntry, WordNode, WordEdge, Relation } from './types';
 import { words } from './data/words';
 import { addRecordStatus, layoutAncestry, readNarrative } from './ancestry';
+import { fetchDictionaryPage } from './dictionary';
 
 interface EtymologyTerm {
   term?: string;
@@ -152,22 +153,12 @@ export async function lookupWord(value: string, signal?: AbortSignal, following 
   const word = normalizeWord(value);
   if (words[word]) return words[word];
   if (cache.has(word)) return cache.get(word)!;
-  const timeout = AbortSignal.timeout(18000);
-  let response: Response;
-  try {
-    response = await fetch(`https://en.wiktionary.org/w/api.php?action=parse&page=${encodeURIComponent(word)}&prop=text&format=json&origin=*&redirects=1`, { signal: signal ? AbortSignal.any([signal, timeout]) : timeout });
-  } catch (error) {
-    if (signal?.aborted) throw error;
-    throw new Error('The dictionary could not be reached. Please try again.');
-  }
-  if (!response.ok) throw new Error('The dictionary is temporarily unavailable. Prepared entries remain available.');
-  const data = await response.json();
-  if (!data.parse?.text?.['*']) {
-    if (data.error?.code && data.error.code !== 'missingtitle') throw new Error('The dictionary is temporarily unavailable. Please try again.');
+  const html = await fetchDictionaryPage(word, signal);
+  if (html === null) {
     return unrecordedEntry(word, `No English dictionary entry was found for “${word}”. Check the spelling or consult another source.`);
   }
   let entry: WordEntry;
-  try { entry = parseEntry(word, data.parse.text['*']); }
+  try { entry = parseEntry(word, html); }
   catch (error) {
     if (error instanceof Error && error.message.startsWith('No English entry')) return unrecordedEntry(word, error.message);
     throw error;

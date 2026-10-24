@@ -34,6 +34,8 @@ Five prepared plates are editorial summaries with source links. Other searches u
 
 Relations distinguish descendants, shared roots, related terms, and semantic neighbours. A reconstructed form keeps its asterisk; uncertain ancestry and calques use dotted connections. Live first-use dates are shown only when a source explicitly dates the selected sense.
 
+Dictionary requests recover automatically from temporary connection failures, HTTP service errors, and MediaWiki busy responses, with at most three attempts within a 30-second budget. Retries respect `Retry-After` and stop when a new search cancels the old one. Requests identify the application and allow five minutes of HTTP caching, following [MediaWiki API guidance](https://www.mediawiki.org/wiki/API:Etiquette). Failed or malformed responses never become “no entry found” records.
+
 Wiktionary material is attributed in each entry under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/). Consult the original page for its contributors and revisions. [Ballet](https://fontsource.org/fonts/ballet) and [Imperial Script](https://fontsource.org/fonts/imperial-script) are self-hosted through Fontsource; their SIL Open Font Licenses are included in `public/licenses/` and the production build.
 
 ## Implementation
@@ -56,6 +58,6 @@ CSS and SVG remain visible if WebGL is unavailable or the frame loses its graphi
 
 Original SVG assets live in `public/ornaments/`. Rebuild them with `python3 scripts/generate_ornaments.py`; material definitions are in `scripts/generate_materials.py`. No image generation is used.
 
-Run `node scripts/verify-browser.mjs` with the development server running for browser checks and desktop/mobile screenshots. It uses Playwright Chromium (`npx playwright install chromium` if needed), writes ignored artifacts to `test-results/`, and includes one live Wiktionary request.
+Run `node scripts/verify-browser.mjs` with the development server running for browser checks and desktop/mobile screenshots. It uses Playwright Chromium (`npx playwright install chromium` if needed), writes ignored artifacts to `test-results/`, and verifies three live Wiktionary searches plus recovery from a simulated service failure.
 
 The application code and original artwork are available under the repository's MIT license. Dictionary material and fonts retain their separate licenses. The initial version is maintained in [wildfellhall/WordPedigree](https://github.com/wildfellhall/WordPedigree).
