@@ -1,5 +1,7 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import { carveFrame, frameScale } from './engravedFrame';
+import { ageBrass } from './agedBrass';
 
 type Surface = (u: number, v: number) => THREE.Vector3;
 const point = (x: number, y: number, z: number) => new THREE.Vector3(x, y, z);
@@ -30,10 +32,24 @@ export function metalTexture() {
   let seed = 1871;
   const random = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
   for (let i = 0; i < size * size; i++) {
-    const grain = 205 + random() * 38;
-    const pitted = random() > .991 ? 115 : grain;
-    data[i * 4] = data[i * 4 + 1] = data[i * 4 + 2] = pitted;
+    const grain = 205 + random() * 34;
+    const pitted = random() > .995;
+    data[i * 4] = pitted ? 143 : grain;
+    data[i * 4 + 1] = pitted ? 249 : 202 + random() * 35;
+    data[i * 4 + 2] = grain;
     data[i * 4 + 3] = 255;
+  }
+  // Sparse, short polishing scratches alter relief and reflection separately.
+  for (let i = 0; i < 22; i++) {
+    const x = random() * size, y = random() * size, length = 3 + random() * 13;
+    const angle = random() * Math.PI;
+    for (let step = 0; step < length; step += .5) {
+      const sx = Math.floor(x + Math.cos(angle) * step) % size;
+      const sy = Math.floor(y + Math.sin(angle) * step) % size;
+      const index = (sy * size + (sx + size) % size) * 4;
+      data[index] = Math.min(data[index], 202);
+      data[index + 1] = 191;
+    }
   }
   const texture = new THREE.DataTexture(data, size, size);
   texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
@@ -43,9 +59,9 @@ export function metalTexture() {
 }
 
 export function makeMaterials(texture: THREE.Texture) {
-  const common = { metalness: .79, roughness: .66, bumpMap: texture, bumpScale: .12, roughnessMap: texture, envMapIntensity: .38, side: THREE.DoubleSide };
+  const common = { metalness: .74, roughness: .68, bumpMap: texture, bumpScale: .09, roughnessMap: texture, envMapIntensity: .16, side: THREE.DoubleSide };
   return {
-    brass: new THREE.MeshStandardMaterial({ ...common, color: '#a68a5e', vertexColors: true }),
+    brass: ageBrass(new THREE.MeshStandardMaterial({ ...common, color: '#aa8d62', vertexColors: true })),
     carved: new THREE.MeshStandardMaterial({ ...common, color: '#9f875e', vertexColors: true, roughness: .86, metalness: .67, envMapIntensity: .23 }),
     raised: new THREE.MeshStandardMaterial({ ...common, color: '#b49b70', roughness: .69, envMapIntensity: .27 }),
     recess: new THREE.MeshStandardMaterial({ ...common, color: '#514632', roughness: .78, metalness: .6 }),
@@ -64,36 +80,6 @@ function thread(points: THREE.Vector3[], radius: number, material: THREE.Materia
 function ellipsoid(x: number, y: number, z: number, sx: number, sy: number, sz: number, material: THREE.Material, group: THREE.Group) {
   const item = mesh(new THREE.SphereGeometry(1, 20, 14), material, group);
   item.position.set(x, y, z); item.scale.set(sx, sy, sz); return item;
-}
-
-function rail(width: number, height: number, scale: number, materials: Materials, group: THREE.Group) {
-  const profile = [[0, .7], [1, 2.5], [2, 4.1], [3, 4.5], [4, 3.7], [5, 2.4], [7, 1.7], [8, 2.8], [10, 4.2], [12, 4.8], [14, 4.5], [18, 2.5], [21, .9], [22, 1.1], [23, 2.8], [24.5, 5.2], [26, 5.5], [27, 4], [29, 1.2], [30, .3]];
-  const parts: THREE.BufferGeometry[] = [];
-  for (let side = 0; side < 4; side++) {
-    parts.push(surface(1, profile.length - 1, (u, v) => {
-      const [distance, relief] = profile[Math.round(v * (profile.length - 1))];
-      const d = distance * scale, z = relief * scale;
-      if (side === 0) return point(d + (width - 2 * d) * u, d, z);
-      if (side === 1) return point(width - d, d + (height - 2 * d) * u, z);
-      if (side === 2) return point(width - d - (width - 2 * d) * u, height - d, z);
-      return point(d, height - d - (height - 2 * d) * u, z);
-    }, (_, v) => .72 + .28 * Math.min(1, profile[Math.round(v * (profile.length - 1))][1] / 4)));
-  }
-  mesh(mergeGeometries(parts), materials.brass, group);
-  parts.forEach(part => part.dispose());
-
-  const offset = 6.5 * scale, step = 7.8 * scale;
-  const horizontalCount = Math.floor((width - 2 * offset) / step);
-  const verticalCount = Math.floor((height - 2 * offset) / step);
-  const beads = new THREE.InstancedMesh(new THREE.SphereGeometry(1, 10, 8), materials.raised, 2 * (horizontalCount + verticalCount));
-  const dummy = new THREE.Object3D(); let index = 0;
-  const bead = (x: number, y: number) => {
-    dummy.position.set(x, y, 2.5 * scale); dummy.scale.set(1.1 * scale, 1.1 * scale, .85 * scale); dummy.updateMatrix();
-    beads.setMatrixAt(index++, dummy.matrix);
-  };
-  for (let i = 0; i < horizontalCount; i++) { bead(offset + i * step, offset); bead(offset + i * step, height - offset); }
-  for (let i = 0; i < verticalCount; i++) { bead(offset, offset + i * step); bead(width - offset, offset + i * step); }
-  beads.castShadow = true; beads.receiveShadow = true; group.add(beads);
 }
 
 function acanthus(length: number, breadth: number, bend: number, materials: Materials) {
@@ -477,29 +463,28 @@ function cherub(materials: Materials) {
   return group;
 }
 
-export function buildGilt(width: number, height: number, materials: Materials) {
+export function buildGilt(width: number, height: number, materials: Materials, renderer: THREE.WebGLRenderer) {
   const group = new THREE.Group();
-  const mobile = width < 650, railScale = mobile ? .62 : 1;
-  rail(width, height, railScale, materials, group);
+  const mobile = width < 650, railScale = frameScale(width);
   carvedBorder(width, height, railScale, materials, group);
   innerFiligree(width, height, railScale, materials, group);
-  const cornerScale = mobile ? .64 : width < 1100 ? .9 : 1.12;
+  const cornerScale = .72 * railScale;
   for (const [x, y, sx, sy] of [[0, 0, 1, 1], [width, 0, -1, 1], [0, height, 1, -1], [width, height, -1, -1]]) {
-    const carving = corner(materials); carving.position.set(x, y, 0); carving.scale.set(cornerScale * sx, cornerScale * sy, cornerScale); group.add(carving);
+    const carving = corner(materials); carving.position.set(x + sx * 18 * railScale, y + sy * 18 * railScale, 0); carving.scale.set(cornerScale * sx, cornerScale * sy, cornerScale); group.add(carving);
   }
-  const crest = cherub(materials); const crestScale = mobile ? .78 : 1.1;
-  crest.scale.setScalar(crestScale); crest.position.set(width / 2, 3, 2); group.add(crest);
+  const crest = cherub(materials); const crestScale = mobile ? .56 : railScale;
+  crest.scale.setScalar(crestScale); crest.position.set(width / 2, 20 * railScale, 0); group.add(crest);
   if (width > 850) {
-    const span = Math.min(340, width / 2 - 285);
+    const span = Math.min(310, width / 2 - 300);
     for (const side of [-1, 1]) {
       const swag = garland(span, materials);
-      swag.position.set(width / 2 + side * 132, 23, 1); swag.scale.x = side; group.add(swag);
+      swag.position.set(width / 2 + side * 132, 33 * railScale, 0); swag.scale.set(side, .45 * railScale, 1); group.add(swag);
     }
   }
   for (const side of [0, 1]) {
     const ornament = sideCartouche(materials);
-    ornament.position.set(side ? width : 0, height / 2, 1);
-    ornament.scale.set((side ? -1 : 1) * railScale, railScale, railScale); group.add(ornament);
+    ornament.position.set(side ? width - 22 * railScale : 22 * railScale, height / 2, 0);
+    ornament.scale.set((side ? -1 : 1) * railScale * .65, railScale * .85, railScale); group.add(ornament);
   }
   const base = new THREE.Group(), fan = shell(36, materials);
   fan.position.set(0, -5, 2); base.add(fan);
@@ -507,7 +492,7 @@ export function buildGilt(width: number, height: number, materials: Materials) {
     const scroll = volute(18, materials); scroll.position.set(side * 52, -16, 0); scroll.scale.x = side; base.add(scroll);
     const leaf = acanthus(69, 8, 2, materials); leaf.position.set(side * 14, -13, 0); leaf.rotation.z = side * Math.PI / 2; base.add(leaf);
   }
-  base.scale.setScalar(railScale); base.position.set(width / 2, height - 4 * railScale, 1); group.add(base);
+  base.scale.setScalar(railScale); base.position.set(width / 2, height - 24 * railScale, 1); group.add(base);
   // Bake carvings into one geometry per material. Their normals and depth remain
   // three-dimensional, while hundreds of small details require only a few draws.
   group.updateMatrixWorld(true);
@@ -533,7 +518,9 @@ export function buildGilt(width: number, height: number, materials: Materials) {
     parts.forEach(part => part.dispose());
   });
   group.traverse(object => { if (object instanceof THREE.Mesh && !(object instanceof THREE.InstancedMesh)) object.geometry.dispose(); });
-  return mergedGroup;
+  const frame = carveFrame(mergedGroup, width, height, railScale, materials.brass, materials.recess, renderer);
+  disposeGeometries(mergedGroup);
+  return frame;
 }
 
 export function disposeGeometries(group: THREE.Object3D) {

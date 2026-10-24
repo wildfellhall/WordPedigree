@@ -105,7 +105,25 @@ def build_lace(out):
 <use href="#lace-turn"/><use href="#lace-turn" transform="translate(480 0) scale(-1 1)"/>
 <use href="#lace-turn" transform="translate(0 480) scale(1 -1)"/><use href="#lace-turn" transform="translate(480 480) scale(-1 -1)"/>'''
     (out/'lace-frame.svg').write_text(f'<svg xmlns="http://www.w3.org/2000/svg" width="480" height="480" viewBox="0 0 480 480">{frame}</svg>')
-    weave='''<defs><pattern id="linen" width="6" height="6" patternUnits="userSpaceOnUse"><rect width="6" height="6" fill="#e8d9d7"/><path d="M1 0V6M4 0V6" stroke="#cfb8b6" stroke-width="1.1"/><path d="M0 1H6M0 4H6" stroke="#f8edeb" stroke-width="1.5"/><path d="M1 0V2.5M4 3V5.5" stroke="#f7ebe7" stroke-width="1.35"/><path d="M1.5 0V2.5M4.5 3V5.5" stroke="#c7ada9" stroke-opacity=".5" stroke-width=".3"/><path d="M0 1.5H3M3 4.5H6" stroke="#bca6a0" stroke-opacity=".3" stroke-width=".35"/></pattern><filter id="grain"><feTurbulence baseFrequency=".8" numOctaves="2" seed="8" stitchTiles="stitch"/><feColorMatrix type="matrix" values="0 0 0 0 .5 0 0 0 0 .4 0 0 0 0 .4 0 0 0 .08 0"/></filter></defs><path d="M0 0H240V240H0Z" fill="url(#linen)"/><path d="M0 0H240V240H0Z" filter="url(#grain)"/>'''
-    (out/'linen-weave.svg').write_text(f'<svg xmlns="http://www.w3.org/2000/svg" width="240" height="240">{weave}</svg>')
+    build_linen(out)
+
+def build_linen(out):
+    # One exact 192px repeat contains 32 complete interlaced weave units.
+    # Transparent threadwork lets CSS supply a single continuous blush ground.
+    weave='''<defs>
+<pattern id="linen" width="6" height="6" patternUnits="userSpaceOnUse">
+  <path d="M1 0V6M4 0V6" stroke="#9d767a" stroke-opacity=".10" stroke-width=".7"/>
+  <path d="M0 1H6M0 4H6" stroke="#fff8f3" stroke-opacity=".28" stroke-width="1.05"/>
+  <path d="M1 0V2.5M4 3V5.5" stroke="#f9eeeb" stroke-opacity=".25" stroke-width=".8"/>
+  <path d="M1.5 0V2.5M4.5 3V5.5" stroke="#a77f80" stroke-opacity=".12" stroke-width=".3"/>
+  <path d="M0 1.5H3M3 4.5H6" stroke="#a77f80" stroke-opacity=".09" stroke-width=".3"/>
+</pattern>
+<filter id="grain" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">
+  <feTurbulence type="fractalNoise" baseFrequency=".8" numOctaves="2" seed="8" stitchTiles="stitch"/>
+  <feColorMatrix type="matrix" values="0 0 0 0 .42 0 0 0 0 .28 0 0 0 0 .30 0 0 0 .03 0"/>
+</filter></defs>
+<path d="M0 0H192V192H0Z" fill="url(#linen)"/>
+<path d="M0 0H192V192H0Z" filter="url(#grain)"/>'''
+    (out/'linen-weave.svg').write_text(f'<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192" viewBox="0 0 192 192">{weave}</svg>')
 
 if __name__=='__main__':build_lace(OUT)

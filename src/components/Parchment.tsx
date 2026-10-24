@@ -55,13 +55,15 @@ export default function Parchment() {
           float membrane=fbm(p*.08+vec2(broad*4.));
           float fine=noise(p*.85);
           float grain=hash(floor(p*1.7));
-          vec3 paper=vec3(.925,.911,.881);
+          vec3 paper=vec3(.933,.909,.871);
           paper+=(broad-.46)*vec3(.070,.063,.052);
           paper+=(membrane-.46)*.037+(fine-.5)*.018+(grain-.5)*.012;
-          // Uneven sizing leaves bleached ivory patches and cooler grey-pink
-          // hollows, without tinting the whole sheet yellow.
+          // Warm ivory retains pale patches and rose-grey hollows. The ageing
+          // lowers green as well as blue, avoiding an overall yellow cast.
           float sizing=fbm(p*.025+vec2(81.,19.));
-          paper+=(sizing-.46)*vec3(.026,.014,.021);
+          paper+=(sizing-.46)*vec3(.030,.018,.025);
+          float ageBloom=smoothstep(.48,.73,fbm(p*.006+vec2(37.,94.)));
+          paper-=ageBloom*vec3(.014,.025,.027);
           // Fine irregular fibres; no regular cloth weave or large noise blotches.
           float fibre=noise(vec2(p.x*.92+p.y*.15,p.y*.09));
           paper-=smoothstep(.68,.94,fibre)*.022;
@@ -69,16 +71,16 @@ export default function Parchment() {
           paper-=pores*vec3(.039,.034,.028);
           float edge=min(min(p.x,uSize.x-p.x),min(p.y,uSize.y-p.y));
           float oxidation=exp(-max(0.,edge-24.)/62.)*(.35+broad*.8);
-          paper-=oxidation*vec3(.069,.081,.097);
+          paper-=oxidation*vec3(.074,.092,.105);
           // Diffuse, grey-brown handling marks concentrate near the edges.
           float marking=smoothstep(.62,.79,fbm(p*.012+42.));
-          paper-=marking*oxidation*vec3(.056,.060,.064);
+          paper-=marking*oxidation*vec3(.059,.070,.075);
           // Sparse ferric freckles, with a diffuse halo rather than hard circles.
           vec2 cell=floor(p/25.); vec2 local=fract(p/25.);
           vec2 center=vec2(hash(cell+19.),hash(cell+71.));
           float freckle=exp(-dot(local-center,local-center)*190.);
           float sparse=step(.91,hash(cell+23.));
-          paper-=freckle*sparse*(.1+oxidation)*vec3(.038,.045,.048);
+          paper-=freckle*sparse*(.16+oxidation)*vec3(.044,.059,.064);
           // A diffuse edge-tide and two faint compressions add local handling
           // history without a repeating stain tile or uniform yellow tint.
           float tidePosition=38.+noise(p*.014)*20.;

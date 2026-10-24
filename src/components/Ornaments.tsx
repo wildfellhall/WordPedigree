@@ -2,17 +2,21 @@ export function InkFilters() {
   return <svg className="material-filters" aria-hidden="true" width="0" height="0">
     <defs>
       <filter id="ink-absorption" x="-3%" y="-8%" width="106%" height="116%" colorInterpolationFilters="sRGB">
-        <feTurbulence type="fractalNoise" baseFrequency=".035 .07" numOctaves="3" seed="23" result="pigment" />
-        <feColorMatrix in="pigment" type="matrix" values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  .4 .4 .4 0 .3" result="density" />
+        <feTurbulence type="fractalNoise" baseFrequency=".065 .028" numOctaves="2" seed="23" result="pigment" />
+        <feColorMatrix in="pigment" type="matrix" values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  .52 .52 .52 0 .02" result="density" />
         <feTurbulence type="fractalNoise" baseFrequency=".75 .62" numOctaves="2" seed="41" result="fibre" />
-        <feColorMatrix in="fibre" type="matrix" values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  .4 .4 .4 0 .3" result="absorption" />
+        <feColorMatrix in="fibre" type="matrix" values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  .4 .4 .4 0 .38" result="absorption" />
         <feDisplacementMap in="SourceGraphic" in2="fibre" scale=".38" xChannelSelector="R" yChannelSelector="G" result="brokenEdge" />
         <feComposite in="brokenEdge" in2="density" operator="in" result="unevenInk" />
         <feComposite in="unevenInk" in2="absorption" operator="in" result="ink" />
+        <feMorphology in="SourceAlpha" operator="erode" radius=".35" result="strokeCore" />
+        <feComposite in="SourceAlpha" in2="strokeCore" operator="out" result="strokeMargin" />
+        <feFlood floodColor="#38271f" floodOpacity=".44" result="pooledPigment" />
+        <feComposite in="pooledPigment" in2="strokeMargin" operator="in" result="inkPool" />
         <feGaussianBlur in="SourceAlpha" stdDeviation=".28" result="wicking" />
         <feFlood floodColor="#695145" floodOpacity=".24" result="bleedColor" />
         <feComposite in="bleedColor" in2="wicking" operator="in" result="bleed" />
-        <feMerge><feMergeNode in="bleed" /><feMergeNode in="ink" /></feMerge>
+        <feMerge><feMergeNode in="bleed" /><feMergeNode in="ink" /><feMergeNode in="inkPool" /></feMerge>
       </filter>
     </defs>
   </svg>;

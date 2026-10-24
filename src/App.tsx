@@ -4,6 +4,7 @@ import { featuredWords, words } from './data/words';
 import { lookupWord } from './lexicon';
 import Parchment from './components/Parchment';
 import GiltFrame from './components/GiltFrame';
+import BotanicalSprigs from './components/BotanicalSprigs';
 import InkText from './components/InkText';
 import Pedigree from './components/Pedigree';
 import Dialog from './components/Dialog';
@@ -87,6 +88,7 @@ export default function App() {
     <div className="folio">
       <Parchment />
       <div className="lace-edging" aria-hidden="true" />
+      <BotanicalSprigs />
       <GiltFrame />
       <div className="folio-content">
         <header className="masthead">
@@ -101,7 +103,7 @@ export default function App() {
             <svg className="search-icon" viewBox="0 0 28 28" aria-hidden="true"><circle cx="11" cy="10" r="7" fill="none" stroke="currentColor" strokeWidth="1.3"/><circle cx="11" cy="10" r="5" fill="none" stroke="currentColor" strokeWidth=".4"/><path d="M16 16L24 25M18 16L26 24" stroke="currentColor" strokeWidth="1.6"/></svg>
             <label className="sr-only" htmlFor="word-search">A word to trace</label>
             <input id="word-search" value={query} onChange={event => setQuery(event.target.value)} placeholder="Enter a word" maxLength={80} autoComplete="off" spellCheck={false} required />
-            <button className="trace-button" type="submit" disabled={loading}>{loading ? 'Searching…' : 'Search'}<span aria-hidden="true">⟶</span></button>
+            <button className="trace-button" type="submit" disabled={loading}><span className="ink-label">{loading ? 'Searching…' : 'Search'}</span><span aria-hidden="true">⟶</span></button>
           </form>
           <div className="suggestions">{['serendipity', 'petrichor', 'companion', 'melancholy'].map(word => <button key={word} onClick={() => void search(word)}>{word}</button>)}</div>
           <div className="search-status" aria-live="polite">{loading && <p>Loading etymology…</p>}{error && <p className="error-message" role="alert">{error}</p>}</div>

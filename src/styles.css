@@ -3,7 +3,6 @@
 :root {
   font-family: var(--script);
   color: #423b36;
-  background: #484c47;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -11,16 +10,16 @@
   --soft-ink: #71695e;
   --metal: #978463;
   --rose: #8b6062;
-  --paper: #edeae3;
+  --paper: #eee7de;
   --rule: #85765d4d;
-  --display: var(--script);
+  --display: 'Ballet', 'Snell Roundhand', cursive;
   --antique: var(--script);
-  --script: 'La Belle Aurore', 'Snell Roundhand', cursive;
+  --script: 'Imperial Script', 'Snell Roundhand', cursive;
   cursor: url('/ornaments/quill-cursor.svg') 3 29, auto;
 }
 
 * { box-sizing: border-box; }
-body { margin: 0; min-width: 340px; background: radial-gradient(ellipse at 45% 20%, #62655c, #3e4541 90%); }
+body { margin: 0; min-width: 340px; }
 button, input { font: inherit; color: inherit; }
 button, a { -webkit-tap-highlight-color: transparent; cursor: url('/ornaments/point-cursor.svg') 5 2, pointer; }
 button { border: 0; background: none; transition: color .15s, background .15s; }
@@ -41,8 +40,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, [tabindex]:focus-vis
   max-width: 1530px;
   width: calc(100% - 64px);
   margin: 32px auto;
-  background: #edeae3;
-  background-image: url('/ornaments/paper-fibres.svg'), radial-gradient(ellipse at 8% 12%, #c7bca440, transparent 38%), radial-gradient(ellipse at 94% 85%, #aa8b7730, transparent 28%);
+  background: #eee7de;
+  background-image: url('/ornaments/paper-fibres.svg'), radial-gradient(ellipse at 8% 12%, #bca18f30, transparent 38%), radial-gradient(ellipse at 94% 85%, #a6807630, transparent 28%);
   box-shadow: 0 7px 15px #171d1b80, 0 22px 55px #161c1a45;
 }
 .parchment-light { position: absolute; inset: 20px; z-index: 0; pointer-events: none; overflow: hidden; }
@@ -204,15 +203,23 @@ h1 { font: 400 53px/1.15 var(--antique); letter-spacing: -.035em; color: #3d3732
 
 /* Ivory needle lace over a blush woven backing. The cutwork ground remains
    transparent, so the fibres and the thread shadows stay visibly distinct. */
-:root { background: #ecdfdd; }
+:root { background: #e5d2d3 url('/ornaments/linen-weave.svg') 0 0 / 192px 192px repeat; }
 body {
-  background-color: #ecdfdd;
-  background-image: radial-gradient(ellipse at 18% 10%, #fff9f5b0, transparent 43%), radial-gradient(ellipse at 90% 70%, #d6b4bc40, transparent 48%), url('/ornaments/linen-weave.svg');
-  background-size: auto, auto, 180px 180px;
+  display: flow-root;
+  min-height: 100vh;
+  background: transparent;
 }
 .folio { width: calc(100% - 148px); margin: 74px auto; box-shadow: 0 5px 10px #6d515129, 0 18px 34px #80606224; }
 .folio-content { padding-top: 81px; }
 .lace-edging { position: absolute; inset: -53px; border: 120px solid transparent; border-image: url('/ornaments/lace-frame.svg') 120 / 1 / 0 round; z-index: -1; pointer-events: none; filter: drop-shadow(0 1px 1px #81696638) drop-shadow(0 3px 3px #9b7d7930); }
+.botanical-sprigs { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+.botanical-sprig { position: absolute; width: 160px; aspect-ratio: 4 / 7; --sprig-outset: 68px; }
+.botanical-sprig-left { left: calc(-1 * var(--sprig-outset)); top: 155px; clip-path: inset(0 calc(100% - var(--sprig-outset) - 12px) 0 0); }
+.botanical-sprig-right { right: calc(-1 * var(--sprig-outset)); bottom: 190px; clip-path: inset(0 0 0 calc(100% - var(--sprig-outset) - 12px)); }
+.botanical-canvas, .botanical-fallback { position: absolute; inset: 0; width: 100%; height: 100%; }
+.botanical-canvas { visibility: hidden; }
+.botanical-sprig[data-rendered='true'] .botanical-canvas { visibility: visible; }
+.botanical-sprig[data-rendered='true'] .botanical-fallback { visibility: hidden; }
 .frame-fallback { position: absolute; inset: 0; }
 .gilt-canvas { display: block; position: absolute; inset: 0; pointer-events: none; }
 .gilt-frame[data-rendered='true'] .frame-fallback { visibility: hidden; }
@@ -237,10 +244,14 @@ h1 { color: #3e342d; }
 @media (max-width: 950px) {
   .folio { width: calc(100% - 104px); margin-top: 54px; margin-bottom: 54px; }
   .lace-edging { inset: -40px; border-width: 94px; }
+  .botanical-sprig { width: 130px; --sprig-outset: 47px; }
 }
 @media (max-width: 650px) {
   .folio { width: calc(100% - 52px); margin: 30px auto; }.folio-content { padding: 63px 26px 38px; }
   .lace-edging { inset: -25px; border-width: 62px; }
+  .botanical-sprig { width: 94px; --sprig-outset: 24px; }
+  .botanical-sprig-left { top: 115px; }
+  .botanical-sprig-right { bottom: 110px; }
   .frame-cameo { width: 154px; height: 56px; }
   .relative-word { font-size: 23px; }
 }
@@ -249,7 +260,7 @@ h1 { color: #3e342d; }
   .relative-card { padding: 0 3px; border-right: 0; }
   .relative-word { font-size: 24px; }
 }
-@media print { .lace-edging { display: none; }.folio { width: 100%; margin: 0; }.gilt-canvas { display: none; }.gilt-frame[data-rendered='true'] .frame-fallback { visibility: visible; } }
+@media print { .lace-edging, .botanical-sprigs { display: none; }.folio { width: 100%; margin: 0; }.gilt-canvas { display: none; }.gilt-frame[data-rendered='true'] .frame-fallback { visibility: visible; } }
 /* Absorbed iron-gall ink has uneven pigment density, with no raised highlight. */
 .word-title h2, .node-word {
   background-image: linear-gradient(165deg, #443129 8%, #654d3f 43%, #402f28 58%, #634c3b 90%);
@@ -263,7 +274,7 @@ h1 { color: #3e342d; }
 }
 
 /* Calligraphy is painted through its glyph masks, with an ordinary text fallback. */
-h1 { font: 400 68px/1.65 var(--script); letter-spacing: 0; }
+h1 { font: 400 92px/1.55 var(--display); letter-spacing: 0; }
 h1, .word-title h2, .node-word { filter: none; background-image: none; color: #49352b; }
 .word-node-selected .node-word { background-image: none; color: #794c52; }
 .ink-writing { display: inline-block; position: relative; max-width: 100%; vertical-align: baseline; }
@@ -272,77 +283,109 @@ h1, .word-title h2, .node-word { filter: none; background-image: none; color: #4
 .ink-writing[data-ink-ready='true'] > canvas { visibility: visible; }
 .word-node-evidence .node-word, .tree-compact .word-node-evidence .node-word { font: italic 21px/1.3 var(--antique); }
 .word-node-evidence .node-frame { stroke-dasharray: 3 3; opacity: .65; }
-@media (max-width: 650px) { h1 { font-size: clamp(44px, 12.5vw, 65px); line-height: 1.65; } }
+@media (max-width: 650px) { h1 { font-size: clamp(48px, 13.2vw, 72px); line-height: 1.8; } }
 @media print {
   .ink-writing canvas { display: none; }
   .ink-writing[data-ink-ready='true'] > .ink-writing-text { color: #49352b; }
 }
 
-/* Running hand throughout: headings, annotations, controls and source notes. */
-body { font: 24px/1.4 var(--script); }
+/* A ceremonial display hand and a quieter formal hand for the annotations. */
+body { font: 32px/1.3 var(--script); }
 button, input, select, textarea, em, i, strong { font-family: var(--script); font-style: normal; font-weight: 400; }
-.saved-navigation, .save-word { font: 22px/1.3 var(--script); }
-.search-form input { height: 49px; font: 29px/1.3 var(--script); padding: 4px 0; }
+.saved-navigation, .save-word { font: 29px/1.3 var(--script); }
+.search-form input { height: 49px; font: 37px/1.3 var(--script); padding: 4px 0; }
 .search-form input::placeholder { font-style: normal; }
-.trace-button { font: 26px/1.2 var(--script); }
+.trace-button { font: 33px/1.2 var(--script); }
 .suggestions { gap: 8px 27px; }
-.suggestions button { font: 22px/1.3 var(--script); }
-.search-status, .search-status p { font: 22px/1.45 var(--script); }
-.pronunciation, .pronunciation em { font: 21px/1.3 var(--script); }
-.word-title h2 { font-size: 66px; line-height: 1.6; }
-.definition { font: 26px/1.4 var(--script); max-width: 760px; color: #57483d; }
-.plate-topline { font: 25px/1.2 var(--script); letter-spacing: 0; }
-.branch-label { font: 18px var(--script); }
+.suggestions button { font: 29px/1.3 var(--script); }
+.search-status, .search-status p { font: 27px/1.35 var(--script); }
+.pronunciation, .pronunciation em { font: 25px/1.3 var(--script); }
+.word-title h2 { font-size: 82px; line-height: 1.25; }
+.definition { font: 33px/1.3 var(--script); max-width: 800px; color: #514239; }
+.plate-topline { font: 29px/1.2 var(--script); letter-spacing: 0; }
+.branch-label { font: 21px var(--script); }
 .word-node { padding: 6px 18px; }
-.node-language, .tree-compact .node-language { font: 16px/1.25 var(--script); text-transform: none; letter-spacing: 0; }
-.node-word, .tree-compact .node-word { font-size: 32px; line-height: 1.5; }
-.word-node-selected .node-word, .tree-compact .word-node-selected .node-word { font-size: 36px; }
-.node-gloss { font: 16px/1.25 var(--script); display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+.node-language, .tree-compact .node-language { font: 21px/1.1 var(--script); text-transform: none; letter-spacing: 0; }
+.node-word, .tree-compact .node-word { font-size: 41px; line-height: 1.05; }
+.word-node-selected .node-word, .tree-compact .word-node-selected .node-word { font-size: 45px; }
+.node-gloss { font: 20px/1.2 var(--script); display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; padding-bottom: 3px; }
 .original-script { font: 17px/1.1 var(--script); }
 .zoom-controls button { font: 26px/1 var(--script); }
-.zoom-controls .zoom-reset { font: 20px/1 var(--script); }
-.notes-heading h3, .section-heading h3 { font: 36px/1.2 var(--script); }
-.field-notes h4 { font: 23px/1.25 var(--script); letter-spacing: 0; margin-bottom: 7px; }
-.field-notes p { font: 25px/1.4 var(--script); color: #58483e; }
-.field-notes .date { font: 43px/1.15 var(--script); }
+.zoom-controls .zoom-reset { font: 24px/1 var(--script); }
+.notes-heading h3, .section-heading h3 { font: 44px/1.2 var(--script); }
+.field-notes h4 { font: 30px/1.2 var(--script); letter-spacing: 0; margin-bottom: 7px; }
+.field-notes p { font: 33px/1.2 var(--script); color: #514239; }
+.field-notes .date { font: 47px/1.15 var(--script); }
 .field-notes .date-long { font-size: 31px; }
-.source-link, .history-link, .ink-link { font: 24px/1.3 var(--script); }
-.relation-label { font: 21px/1.2 var(--script); text-transform: none; letter-spacing: 0; }
-.relative-word { font: 34px/1.2 var(--script); }
-.relative-note { font: 23px/1.35 var(--script); color: #635045; }
-.empty-note, .partial-note { font: 22px/1.4 var(--script); }
-.entry-source-note { font: 20px/1.5 var(--script); }
-.cabinet-tabs button { font: 26px/1.25 var(--script); }
-.cabinet-number, .cabinet-open { font: 22px/1.25 var(--script); }
-.cabinet-card p, .cabinet-empty { font: 25px/1.4 var(--script); }
-.notice { font: 25px/1.25 var(--script); }
-.dialog-interior p, .dialog-interior li, .node-detail .detail-language, .node-detail .detail-gloss { font: 26px/1.4 var(--script); }
+.source-link, .history-link, .ink-link { font: 29px/1.3 var(--script); }
+.relation-label { font: 26px/1.2 var(--script); text-transform: none; letter-spacing: 0; }
+.relative-word { font: 42px/1.2 var(--script); }
+.relative-note { font: 31px/1.25 var(--script); color: #58483e; }
+.empty-note, .partial-note { font: 27px/1.35 var(--script); }
+.entry-source-note { font: 24px/1.4 var(--script); }
+.cabinet-tabs button { font: 30px/1.25 var(--script); }
+.cabinet-number, .cabinet-open { font: 27px/1.25 var(--script); }
+.cabinet-card p, .cabinet-empty { font: 30px/1.3 var(--script); }
+.notice { font: 29px/1.25 var(--script); }
+.dialog-interior p, .dialog-interior li, .node-detail .detail-language, .node-detail .detail-gloss { font: 34px/1.25 var(--script); }
 .dialog-interior h3 { font: 33px/1.2 var(--script); }
 .node-detail .detail-original { font: 31px/1.25 var(--script); }
 @media (min-width: 951px) {
   .entry-body { grid-template-columns: minmax(0, 1fr) 320px; }
-  .field-notes p { font-size: 24px; line-height: 1.34; }
+  .field-notes p { font-size: 32px; line-height: 1.2; }
 }
 @media (max-width: 650px) {
   .masthead { padding-bottom: 43px; }
-  .saved-navigation { font-size: 20px; }
-  .search-form input { font-size: 27px; height: 47px; }
-  .trace-button { font-size: 24px; }
+  .saved-navigation { font-size: 27px; }
+  .search-form input { font-size: 34px; height: 47px; }
+  .trace-button { font-size: 30px; }
   .suggestions { gap: 8px 17px; }
-  .suggestions button { font-size: 20px; }
-  .save-word { font-size: 20px; bottom: -13px; }
-  .definition { font-size: 25px; margin-top: 23px; }
-  .word-title h2 { font-size: 58px; }
-  .notes-heading h3, .section-heading h3 { font-size: 34px; }
+  .suggestions button { font-size: 27px; }
+  .save-word { font-size: 27px; bottom: -13px; }
+  .definition { font-size: 32px; margin-top: 23px; }
+  .word-title h2 { font-size: 72px; }
+  .notes-heading h3, .section-heading h3 { font-size: 40px; }
   .field-notes { column-gap: 17px; }
-  .field-notes h4 { font-size: 21px; }
-  .field-notes p { font-size: 24px; }
-  .field-notes .date { font-size: 39px; }
-  .relative-word { font-size: 33px; }
-  .relative-note { font-size: 23px; }
-  .entry-source-note { font-size: 19px; }
-  .dialog-interior p, .dialog-interior li { font-size: 25px; }
+  .field-notes h4 { font-size: 29px; }
+  .field-notes p { font-size: 32px; }
+  .field-notes .date { font-size: 43px; }
+  .relative-word { font-size: 40px; }
+  .relative-note { font-size: 31px; }
+  .entry-source-note { font-size: 23px; }
+  .dialog-interior p, .dialog-interior li { font-size: 33px; }
 }
 @media (max-width: 450px) {
   .field-notes { grid-template-columns: 1fr; gap: 23px; }
 }
+
+/* The metal is now a continuous, deeply profiled surround. Reserve space for
+   its full width, including when the WebGL surface falls back to CSS. */
+.folio { --frame-width: 70px; }
+.folio-content { padding: calc(var(--frame-width) + 42px) calc(var(--frame-width) + 26px) calc(var(--frame-width) + 22px); }
+.folio::before { inset: var(--frame-width); box-shadow: inset 0 3px 8px #392b2242, inset 0 0 24px #806a4920; }
+.folio:has(.gilt-frame[data-rendered='true'])::before { visibility: hidden; }
+.frame-inner { inset: var(--frame-width); }
+.gilt-frame[data-rendered='true'] .frame-inner { visibility: hidden; }
+.rail-top, .rail-bottom { height: var(--frame-width); clip-path: polygon(0 0,100% 0,calc(100% - var(--frame-width)) 100%,var(--frame-width) 100%); }
+.rail-left, .rail-right { width: var(--frame-width); clip-path: polygon(0 0,100% var(--frame-width),100% calc(100% - var(--frame-width)),0 100%); }
+.frame-fallback .corner { width: calc(var(--frame-width) * 1.7); height: calc(var(--frame-width) * 1.7); background: linear-gradient(135deg,#a38c63,#c3ae82 45%,#826e4f); clip-path: polygon(0 0,100% 0,100% 38%,38% 100%,0 100%); }
+/* Ink pooling and variable absorption are applied to text-bearing elements,
+   never to the parchment, metal or the solid body of a button. */
+.saved-navigation, .save-word, .suggestions button, .search-form input,
+.pronunciation, .field-notes h4, .plate-topline, .branch-label,
+.source-link, .history-link, .relation-label, .entry-source-note,
+.partial-note, .empty-note, .search-status, .cabinet-tabs button,
+.cabinet-number, .cabinet-card p, .cabinet-open, .cabinet-empty,
+.dialog-interior h3, .dialog-interior p, .dialog-interior li, .ink-link,
+.zoom-controls button, .notice, .section-heading h3, .ink-label, .dialog-close {
+  filter: url('#ink-absorption');
+  text-shadow: none;
+}
+.trace-button .ink-label { font: inherit; margin: 0; }
+@media (max-width: 650px) { .trace-button .ink-label { display: inline; } }
+@media (max-width: 1250px) { .folio { --frame-width: 57.4px; } }
+@media (max-width: 650px) {
+  .folio { --frame-width: 33.6px; }
+  .folio-content { padding: calc(var(--frame-width) + 34px) calc(var(--frame-width) + 10px) calc(var(--frame-width) + 30px); }
+}
+@media print { .folio-content { padding: 32px; } }

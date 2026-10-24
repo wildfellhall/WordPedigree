@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import '@fontsource/la-belle-aurore/400.css';
+import '@fontsource/ballet/400.css';
+import '@fontsource/imperial-script/400.css';
 import App from './App';
 import './styles.css';
 

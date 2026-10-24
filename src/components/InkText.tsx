@@ -12,6 +12,22 @@ const noise = (x: number, y: number) => {
   return a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v;
 };
 
+// Distance inside a stroke distinguishes fine connecting hairlines from broad
+// brush work. A two-pass chamfer field follows the actual curved letter edges.
+function strokeDepth(mask: ImageData) {
+  const { width, height, data } = mask, depth = new Float32Array(width * height);
+  for (let i = 0; i < depth.length; i++) depth[i] = data[i * 4 + 3] > 127 ? 1e6 : 0;
+  for (let y = 1; y < height - 1; y++) for (let x = 1; x < width - 1; x++) {
+    const i = y * width + x;
+    depth[i] = Math.min(depth[i], depth[i - 1] + 1, depth[i - width] + 1, depth[i - width - 1] + Math.SQRT2, depth[i - width + 1] + Math.SQRT2);
+  }
+  for (let y = height - 2; y > 0; y--) for (let x = width - 2; x > 0; x--) {
+    const i = y * width + x;
+    depth[i] = Math.min(depth[i], depth[i + 1] + 1, depth[i + width] + 1, depth[i + width + 1] + Math.SQRT2, depth[i + width - 1] + Math.SQRT2);
+  }
+  return depth;
+}
+
 /** The real text remains selectable and accessible. The canvas replaces only
  * its paint, depositing ink into the glyph mask at a consistent paper scale. */
 export default function InkText({ children, rose = false }: { children: string; rose?: boolean }) {
@@ -29,9 +45,8 @@ export default function InkText({ children, rose = false }: { children: string; 
       const width = element.offsetWidth, height = element.offsetHeight;
       if (!width || !height) return;
       const scale = bounds.width / width;
-      // Handwriting descenders can extend beyond the CSS line box. Reserve
-      // real canvas space for them instead of cutting the ink at its edge.
-      const ratio = Math.min(window.devicePixelRatio || 1, 2), pad = Math.ceil(Math.max(9, parseFloat(style.fontSize) * .45));
+      // Sweeping capitals and descenders extend outside the CSS line box.
+      const ratio = Math.min(window.devicePixelRatio || 1, 2), pad = Math.ceil(Math.max(12, parseFloat(style.fontSize) * .8));
       const w = Math.ceil((width + pad * 2) * ratio), h = Math.ceil((height + pad * 2) * ratio);
       const mask = document.createElement('canvas'); mask.width = w; mask.height = h;
       const ctx = mask.getContext('2d', { willReadFrequently: true });
@@ -65,31 +80,35 @@ export default function InkText({ children, rose = false }: { children: string; 
           const seed = [...word].reduce((sum, character) => sum + character.codePointAt(0)!, prefix.length);
           const size = parseFloat(style.fontSize);
           ctx.save();
-          ctx.translate(pad + line.x + offset, baseline + (hash(seed, 8) - .5) * size * .006);
-          ctx.rotate((hash(seed, 17) - .5) * .006);
+          ctx.translate(pad + line.x + offset, baseline + (hash(seed, 8) - .5) * size * .002);
+          ctx.rotate((hash(seed, 17) - .5) * .002);
           ctx.fillText(word, 0, 0);
           ctx.restore(); prefix += word;
         }
       }
       const glyphs = ctx.getImageData(0, 0, w, h), pigment = ctx.createImageData(w, h);
-      const sampleAlpha = (x: number, y: number) => glyphs.data[(Math.max(0, Math.min(h - 1, y)) * w + Math.max(0, Math.min(w - 1, x))) * 4 + 3] / 255;
-      const step = Math.max(1, Math.round(ratio * .8));
+      const depth = strokeDepth(glyphs);
       for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
         const index = (y * w + x) * 4, coverage = glyphs.data[index + 3] / 255;
         if (!coverage) continue;
         const px = x / ratio, py = y / ratio;
-        const edge = 1 - Math.min(sampleAlpha(x - step, y), sampleAlpha(x + step, y), sampleAlpha(x, y - step), sampleAlpha(x, y + step));
-        const wash = noise(px * .045, py * .09);
+        const distance = depth[y * w + x] / ratio;
+        const edge = Math.exp(-distance * 1.7);
+        const broadStroke = Math.min(1, Math.max(0, (distance - .9) / 1.6));
+        const wash = noise(px * .065, py * .028);
         const grain = noise(px * 1.9, py * 1.3);
         const fibre = noise(px * .38, py * 3.8);
-        const dry = Math.max(0, fibre - .66) * .45 + Math.max(0, noise(px * 3.2, py * .48) - .72) * .18;
-        const dilution = Math.min(1, Math.max(0, .18 + wash * .65 + grain * .25 - edge * .42));
-        // Iron-gall ink pools at stroke margins; the centre holds a translucent
-        // warmer wash. Fine undyed fibres break it without uniform white specks.
-        pigment.data[index] = (rose ? 91 : 36) + dilution * (rose ? 47 : 64);
-        pigment.data[index + 1] = (rose ? 47 : 26) + dilution * 45;
-        pigment.data[index + 2] = (rose ? 46 : 23) + dilution * 31;
-        pigment.data[index + 3] = coverage * Math.min(1, .91 + edge * .07 - dry - (grain - .5) * .15) * 255;
+        // Fine bristle traces follow the curved stroke boundary and only
+        // appear in its broad swells. Hairlines retain their full ink coverage.
+        const rake = Math.pow(.5 + .5 * Math.sin(distance * 9 + noise(px * .028, py * .028) * 5), 10) * broadStroke;
+        const dry = (Math.max(0, fibre - .72) * .08 + rake * .045) * broadStroke;
+        const dilution = Math.min(1, Math.max(0, .16 + wash * .72 + grain * .15 - edge * .37 + rake * .22));
+        // A well-loaded brush leaves a rich translucent core and a slightly
+        // darker drying edge. Paper tooth remains visible through the wash.
+        pigment.data[index] = (rose ? 88 : 29) + dilution * (rose ? 57 : 98);
+        pigment.data[index + 1] = (rose ? 43 : 21) + dilution * 76;
+        pigment.data[index + 2] = (rose ? 42 : 17) + dilution * 49;
+        pigment.data[index + 3] = coverage * Math.min(1, .94 + edge * .06 - dry - (grain - .5) * .06) * 255;
       }
       ctx.putImageData(pigment, 0, 0);
       target.width = w; target.height = h;
