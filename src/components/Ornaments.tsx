@@ -30,14 +30,6 @@ export function Flourish({ className = '' }: { className?: string }) {
   </svg>;
 }
 
-export function BookIcon({ className = '' }: { className?: string }) {
-  return <svg className={className} viewBox="0 0 48 40" fill="none" stroke="currentColor" strokeWidth="1.2" aria-hidden="true"><path d="M24 34V9Q14 2 3 7V30Q14 26 24 34Q34 26 45 30V7Q34 2 24 9M7 12Q14 9 20 13M7 17Q14 14 20 18M7 22Q14 19 20 23M28 13Q35 9 41 12M28 18Q35 14 41 17M28 23Q35 19 41 22M1 9V34Q15 29 24 37Q33 29 47 34V9" /></svg>;
-}
-
-export function BookmarkIcon({ filled = false }: { filled?: boolean }) {
-  return <svg viewBox="0 0 20 24" fill={filled ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.1" aria-hidden="true"><path d="M4 2H16V21L10 17 4 21Z" /><path d="M7 6H13M7 9H13" stroke={filled ? '#eee1c5' : 'currentColor'} /></svg>;
-}
-
 export function NodeFrame() {
   return <svg className="node-frame" viewBox="0 0 244 116" preserveAspectRatio="none" fill="none" aria-hidden="true">
     <path d="M22 6H100L122 1 144 6H222Q222 22 238 22V94Q222 94 222 110H144L122 115 100 110H22Q22 94 6 94V22Q22 22 22 6Z" />
