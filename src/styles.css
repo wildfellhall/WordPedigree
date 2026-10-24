@@ -212,10 +212,16 @@ body {
 .folio { width: calc(100% - 148px); margin: 74px auto; box-shadow: 0 5px 10px #6d515129, 0 18px 34px #80606224; }
 .folio-content { padding-top: 81px; }
 .lace-edging { position: absolute; inset: -53px; border: 120px solid transparent; border-image: url('/ornaments/lace-frame.svg') 120 / 1 / 0 round; z-index: -1; pointer-events: none; filter: drop-shadow(0 1px 1px #81696638) drop-shadow(0 3px 3px #9b7d7930); }
-.botanical-sprigs { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
-.botanical-sprig { position: absolute; width: 160px; aspect-ratio: 4 / 7; --sprig-outset: 68px; }
-.botanical-sprig-left { left: calc(-1 * var(--sprig-outset)); top: 155px; clip-path: inset(0 calc(100% - var(--sprig-outset) - 12px) 0 0); }
-.botanical-sprig-right { right: calc(-1 * var(--sprig-outset)); bottom: 190px; clip-path: inset(0 0 0 calc(100% - var(--sprig-outset) - 12px)); }
+.botanical-sprigs { position: absolute; inset: 0; z-index: 0; pointer-events: none; container-type: size; }
+.botanical-sprig { position: absolute; width: min(160px, 14cqh); aspect-ratio: 4 / 7; --sprig-outset: 68px; transform: translateY(-50%); }
+.botanical-sprig-left { left: calc(-1 * var(--sprig-outset)); clip-path: inset(0 calc(100% - var(--sprig-outset) - 12px) 0 0); }
+.botanical-sprig-right { right: calc(-1 * var(--sprig-outset)); clip-path: inset(0 0 0 calc(100% - var(--sprig-outset) - 12px)); }
+.botanical-sprig-left.botanical-sprig-upper { top: min(12%, 295px); }
+.botanical-sprig-right.botanical-sprig-upper { top: min(19%, 410px); }
+.botanical-sprig-left.botanical-sprig-middle { top: 45%; }
+.botanical-sprig-right.botanical-sprig-middle { top: 53%; }
+.botanical-sprig-left.botanical-sprig-lower { top: 78%; }
+.botanical-sprig-right.botanical-sprig-lower { top: 86%; }
 .botanical-canvas, .botanical-fallback { position: absolute; inset: 0; width: 100%; height: 100%; }
 .botanical-canvas { visibility: hidden; }
 .botanical-sprig[data-rendered='true'] .botanical-canvas { visibility: visible; }
@@ -244,14 +250,14 @@ h1 { color: #3e342d; }
 @media (max-width: 950px) {
   .folio { width: calc(100% - 104px); margin-top: 54px; margin-bottom: 54px; }
   .lace-edging { inset: -40px; border-width: 94px; }
-  .botanical-sprig { width: 130px; --sprig-outset: 47px; }
+  .botanical-sprig { width: min(130px, 14cqh); --sprig-outset: 47px; }
 }
 @media (max-width: 650px) {
   .folio { width: calc(100% - 52px); margin: 30px auto; }.folio-content { padding: 63px 26px 38px; }
   .lace-edging { inset: -25px; border-width: 62px; }
-  .botanical-sprig { width: 94px; --sprig-outset: 24px; }
-  .botanical-sprig-left { top: 115px; }
-  .botanical-sprig-right { bottom: 110px; }
+  .botanical-sprig { width: min(94px, 14cqh); --sprig-outset: 24px; }
+  .botanical-sprig-left.botanical-sprig-upper { top: min(12%, 150px); }
+  .botanical-sprig-right.botanical-sprig-upper { top: min(19%, 270px); }
   .frame-cameo { width: 154px; height: 56px; }
   .relative-word { font-size: 23px; }
 }

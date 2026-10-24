@@ -11,6 +11,18 @@ const vector = (p: Point) => new THREE.Vector3(...p);
 export function sprigPlan(variant: number): SprigPlan {
   // Sparse, unequal forks rather than a symmetrical bouquet. The cut ends
   // disappear beneath the rail; the flowering ends lie on the outer linen.
+  if (variant === 2) {
+    const original = sprigPlan(0);
+    const bend = ([x, y, z]: Point): Point => [
+      x + Math.sin(y * .021 + .7) * 6 * (1 - y / SPRIG_HEIGHT),
+      24 + (y - 24) * .91,
+      z * .88,
+    ];
+    return {
+      stems: original.stems.map(stem => stem.map(bend)),
+      tips: original.tips.map(tip => ({ point: bend(tip.point), radius: tip.radius * .88, count: tip.count - 2 })),
+    };
+  }
   if (variant === 0) return {
     stems: [
       [[207, 408, 4], [158, 307, 6], [106, 194, 7], [58, 66, 8]],

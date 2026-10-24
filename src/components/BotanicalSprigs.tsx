@@ -2,10 +2,19 @@ import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { buildDriedSprig, SPRIG_HEIGHT, SPRIG_WIDTH, sprigPlan } from '../rendering/driedSprigs';
 
-function SprigFallback({ variant }: { variant: number }) {
+const placements = [
+  { side: 'left', slot: 'upper', variant: 0 },
+  { side: 'right', slot: 'upper', variant: 2 },
+  { side: 'left', slot: 'middle', variant: 1 },
+  { side: 'right', slot: 'middle', variant: 0 },
+  { side: 'left', slot: 'lower', variant: 2 },
+  { side: 'right', slot: 'lower', variant: 1 },
+] as const;
+
+function SprigFallback({ variant, mirrored }: { variant: number; mirrored: boolean }) {
   const plan = sprigPlan(variant);
   return <svg className="botanical-fallback" viewBox={`0 0 ${SPRIG_WIDTH} ${SPRIG_HEIGHT}`} aria-hidden="true">
-    <g transform={variant ? `translate(${SPRIG_WIDTH} 0) scale(-1 1)` : undefined}>
+    <g transform={mirrored ? `translate(${SPRIG_WIDTH} 0) scale(-1 1)` : undefined}>
       {plan.stems.map((p, i) => <g key={i}>
         <path d={`M${p[0][0]} ${p[0][1]}C${p[1][0]} ${p[1][1]} ${p[2][0]} ${p[2][1]} ${p[3][0]} ${p[3][1]}`} fill="none" stroke="#8d8166" strokeWidth={i ? 1.2 : 2.1} />
         <path d={`M${p[0][0] - .5} ${p[0][1]}C${p[1][0] - .5} ${p[1][1]} ${p[2][0] - .5} ${p[2][1]} ${p[3][0] - .5} ${p[3][1]}`} fill="none" stroke="#c6b393" strokeWidth=".4" />
@@ -54,18 +63,25 @@ export default function BotanicalSprigs() {
     const ground = new THREE.Mesh(new THREE.PlaneGeometry(SPRIG_WIDTH, SPRIG_HEIGHT), new THREE.ShadowMaterial({color:'#665042',opacity:.20,depthWrite:false}));
     ground.position.set(SPRIG_WIDTH / 2, SPRIG_HEIGHT / 2, -.1); ground.receiveShadow = true; scene.add(ground);
     try {
-      host.querySelectorAll<HTMLCanvasElement>('canvas').forEach((canvas, variant) => {
-        const sprig = buildDriedSprig(variant, variant === 1); scene.add(sprig.group);
+      // Build each botanical form once, lighting it separately from each side.
+      // Six placements therefore need only three geometry builds.
+      for (const variant of [0, 1, 2]) {
+        const sprig = buildDriedSprig(variant); scene.add(sprig.group);
         try {
-          renderer.render(scene, camera);
-          canvas.width = renderer.domElement.width; canvas.height = renderer.domElement.height;
-          const context = canvas.getContext('2d');
-          if (context) {
-            context.drawImage(renderer.domElement, 0, 0);
-            canvas.parentElement!.dataset.rendered = 'true';
-          }
+          host.querySelectorAll<HTMLCanvasElement>(`canvas[data-variant="${variant}"]`).forEach(canvas => {
+            const mirrored = canvas.dataset.side === 'right';
+            sprig.group.scale.x = mirrored ? -1 : 1;
+            sprig.group.position.x = mirrored ? SPRIG_WIDTH : 0;
+            renderer.render(scene, camera);
+            canvas.width = renderer.domElement.width; canvas.height = renderer.domElement.height;
+            const context = canvas.getContext('2d');
+            if (context) {
+              context.drawImage(renderer.domElement, 0, 0);
+              canvas.parentElement!.dataset.rendered = 'true';
+            }
+          });
         } finally { scene.remove(sprig.group); sprig.dispose(); }
-      });
+      }
     } catch {
       // Keep the vector sprigs if the device cannot finish the still-life render.
       host.querySelectorAll<HTMLElement>('.botanical-sprig').forEach(el => delete el.dataset.rendered);
@@ -78,8 +94,8 @@ export default function BotanicalSprigs() {
     return () => host.querySelectorAll<HTMLElement>('.botanical-sprig').forEach(el => delete el.dataset.rendered);
   }, []);
   return <div className="botanical-sprigs" ref={mount} aria-hidden="true">
-    {[0, 1].map(variant => <div className={`botanical-sprig botanical-sprig-${variant === 0 ? 'left' : 'right'}`} key={variant}>
-      <SprigFallback variant={variant} /><canvas className="botanical-canvas" />
+    {placements.map(({side, slot, variant}) => <div className={`botanical-sprig botanical-sprig-${side} botanical-sprig-${slot}`} key={`${side}-${slot}`}>
+      <SprigFallback variant={variant} mirrored={side === 'right'} /><canvas className="botanical-canvas" data-variant={variant} data-side={side} />
     </div>)}
   </div>;
 }
